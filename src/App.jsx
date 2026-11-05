@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SearchBar from "./components/SearchBar";
 import EmployeeTable from "./components/EmployeeTable";
 import EmployeeForm from "./components/EmployeeForm";
@@ -6,33 +6,49 @@ import Message from "./components/Message";
 import Modal from "./components/Modal";
 import "./App.css";
 
-const initialEmployees = [
-  { id: "EMP001", name: "Rahul", email: "rahul@gmail.com", department: "IT", phone: "9876543210", dob: "1995-05-10" },
-  { id: "EMP002", name: "Priya", email: "priya@gmail.com", department: "HR", phone: "9876543211", dob: "1996-08-15" },
-  { id: "EMP003", name: "Amit", email: "amit@gmail.com", department: "Finance", phone: "9876543212", dob: "1993-12-01" },
-];
+const API_URL = "http://localhost:5000/api/employees";
 
 function App() {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState(["IT", "HR", "Finance"]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const showMessage = (text) => {
     setMessage(text);
     setTimeout(() => setMessage(""), 3000);
   };
 
-  const generateId = () => {
-    const maxNumber = employees.reduce(
-      (max, emp) => Math.max(max, parseInt(emp.id.replace("EMP", ""))),
-      0
-    );
-    return "EMP" + String(maxNumber + 1).padStart(3, "0");
+  const showError = (text) => {
+    setError(text);
+    setTimeout(() => setError(""), 4000);
   };
+
+  // ---------- VIEW: load employees when the page opens ----------
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error("Failed to load employees");
+        const data = await res.json();
+        setEmployees(data);
+
+        // keep any departments already used by saved employees
+        setDepartments((prev) => [
+          ...new Set([...prev, ...data.map((emp) => emp.department)]),
+        ]);
+      } catch (err) {
+        console.error(err);
+        showError("Could not load employees. Is the backend running?");
+      }
+    };
+
+    loadEmployees();
+  }, []);
 
   const addDepartment = (name) => {
     setDepartments((prev) => [...prev, name]);
@@ -53,25 +69,59 @@ function App() {
     setEditingEmployee(null);
   };
 
-  const handleSave = (data) => {
-    if (editingEmployee) {
-      setEmployees(
-        employees.map((emp) =>
-          emp.id === editingEmployee.id ? { ...emp, ...data } : emp
-        )
-      );
-      showMessage("Employee updated successfully!");
-    } else {
-      setEmployees([...employees, { id: generateId(), ...data }]);
-      showMessage("Employee added successfully!");
+  // ---------- ADD and EDIT ----------
+  const handleSave = async (data) => {
+    try {
+      if (editingEmployee) {
+        // EDIT -> PUT
+        const res = await fetch(`${API_URL}/${editingEmployee.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error("Failed to update employee");
+
+        const updated = await res.json();
+        setEmployees((prev) =>
+          prev.map((emp) => (emp.id === updated.id ? updated : emp))
+        );
+        showMessage("Employee updated successfully!");
+      } else {
+        // ADD -> POST
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error("Failed to add employee");
+
+        const created = await res.json();
+        setEmployees((prev) => [...prev, created]);
+        showMessage("Employee added successfully!");
+      }
+      closeForm();
+    } catch (err) {
+      console.error(err);
+      showError("Something went wrong. Please try again.");
     }
-    closeForm();
   };
 
-  const confirmDelete = () => {
-    setEmployees(employees.filter((emp) => emp.id !== deleteTarget.id));
-    setDeleteTarget(null);
-    showMessage("Employee deleted successfully!");
+  // ---------- DELETE ----------
+  const confirmDelete = async () => {
+    try {
+      const res = await fetch(`${API_URL}/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete employee");
+
+      setEmployees((prev) => prev.filter((emp) => emp.id !== deleteTarget.id));
+      showMessage("Employee deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      showError("Could not delete the employee.");
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   const filteredEmployees = employees.filter((emp) =>
@@ -93,6 +143,11 @@ function App() {
         <h1>Employee Management</h1>
 
         <Message text={message} />
+        {error && (
+          <div className="error-message" role="alert">
+            {error}
+          </div>
+        )}
 
         <div className="card">
           <div className="top-bar">

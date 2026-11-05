@@ -314,3 +314,12 @@ h2 {
     padding: 0 16px;
   }
 }
+.error-message {
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  color: var(--danger);
+  background: var(--danger-soft);
+  border: 1px solid #f3c9c4;
+  border-radius: 6px;
+  font-weight: 500;
+}
