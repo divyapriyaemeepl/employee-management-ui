@@ -1,0 +1,26 @@
+[
+  {
+    "id": "EMP001",
+    "name": "Rahul",
+    "email": "rahul@gmail.com",
+    "department": "IT",
+    "phone": "9876543210",
+    "dob": "1995-05-10"
+  },
+  {
+    "id": "EMP002",
+    "name": "Priya",
+    "email": "priya@gmail.com",
+    "department": "HR",
+    "phone": "9876543211",
+    "dob": "1996-08-15"
+  },
+  {
+    "id": "EMP003",
+    "name": "Amit",
+    "email": "amit@gmail.com",
+    "department": "Finance",
+    "phone": "9876543212",
+    "dob": "1993-12-01"
+  }
+]
