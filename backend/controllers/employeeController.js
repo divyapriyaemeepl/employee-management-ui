@@ -1,13 +1,15 @@
 const fs = require("fs");
 const path = require("path");
 
-// path to the JSON file (works from any folder)
-const filePath = path.join(__dirname, "..", "data", "employees.json");
+const seedPath = path.join(__dirname, "..", "data", "employees.json");
 
-// ---------- helper functions ----------
+// on Vercel only /tmp can be written to
+const filePath = process.env.VERCEL ? "/tmp/employees.json" : seedPath;
 
-// read the file, convert text -> JavaScript array
 const readEmployees = () => {
+  if (!fs.existsSync(filePath)) {
+    fs.copyFileSync(seedPath, filePath);
+  }
   const data = fs.readFileSync(filePath, "utf-8");
   return JSON.parse(data);
 };
