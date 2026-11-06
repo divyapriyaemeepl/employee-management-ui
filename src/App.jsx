@@ -6,7 +6,8 @@ import Message from "./components/Message";
 import Modal from "./components/Modal";
 import "./App.css";
 
-const API_URL = "http://localhost:5000/api/employees";
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api/employees";
 
 function App() {
   const [employees, setEmployees] = useState([]);
