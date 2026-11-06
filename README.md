@@ -98,6 +98,42 @@ main
 - `docs:` documentation changes
 - `chore:` setup and configuration
 
+## Backend (Node.js + Express)
+
+The backend stores employees in a local JSON file (no database).
+
+### Run the backend
+```bash
+cd backend
+npm install
+npm start
+```
+The API runs on http://localhost:5000
+
+### Run the frontend
+```bash
+npm install
+npm run dev
+```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /api/employees | Get all employees |
+| POST | /api/employees | Add an employee |
+| PUT | /api/employees/:id | Update an employee |
+| DELETE | /api/employees/:id | Delete an employee |
+
+### Backend Structure
+```
+backend/
+├── controllers/employeeController.js   # logic for each operation
+├── routes/employeeRoutes.js            # URL + method mapping
+├── data/employees.json                 # JSON file storage
+└── server.js                           # Express app entry point
+```
+
 ## Author
 
 Divya Priya E
